@@ -6,18 +6,21 @@ import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
-import AdminLayout from "./components/layout/AdminLayout";
-import { Toaster } from "sonner";
-import ProtectedRoute from "./components/Protectedroute ";
 import Categories from "./pages/Categories";
 import ShippingRates from "./pages/ShippingRates";
+import { Toaster } from "sonner";
+import PublicRoute from "./components/PublicRoute";
+import ProtectedRoute from "./components/Protectedroute ";
+import AdminLayout from "./components/layout/AdminLayout";
 
 function App() {
   return (
     <>
       <Toaster position="top-center" richColors closeButton />
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route element={<PublicRoute />}>
+          <Route path="/" element={<Login />} />
+        </Route>
         <Route element={<ProtectedRoute />}>
           <Route element={<AdminLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />

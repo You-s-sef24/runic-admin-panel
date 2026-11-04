@@ -64,9 +64,7 @@ export function OrdersTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-start">
-                {t("orders.orderId")}
-              </TableHead>
+              <TableHead className="text-start">#</TableHead>
               <TableHead className="text-start">
                 {t("orders.customer")}
               </TableHead>
@@ -88,10 +86,10 @@ export function OrdersTable({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredOrders.map((order) => (
+              filteredOrders.map((order, i) => (
                 <TableRow key={order._id}>
                   <TableCell className="font-medium text-indigo-600 dark:text-indigo-400 text-start">
-                    ORD-{order._id}
+                    {i + 1}
                   </TableCell>
                   <TableCell className="font-medium text-start">
                     {getCustomerName(order)}
