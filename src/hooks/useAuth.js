@@ -1,4 +1,9 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { getUsers, login, logout, updateUser } from "@/api/users";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
@@ -50,16 +55,20 @@ export function useLogout() {
 }
 
 export function useUpdateProfile() {
-  const queryClient = useQueryClient();
-  const updateUserInStore = useAuthStore((s) => s.updateUser);
+  const setUser = useAuthStore((s) => s.setUser);
 
   return useMutation({
     mutationFn: updateUser,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      updateUserInStore(data.user);
-      toast.success("Profile updated successfully");
+      const current = useAuthStore.getState().user;
+      setUser({ ...current, ...data.user });
+      toast.success(data.message);
     },
-    onError: () => toast.error("Failed to update profile"),
+    onError: (error) => {
+      const data = error.response?.data;
+      toast.error(
+        data?.message || data?.errors?.[0]?.msg || "Update Profile Failed",
+      );
+    },
   });
 }

@@ -23,8 +23,8 @@ import { useUpdateProfile } from "@/hooks/useAuth";
 import { useGetNailCost, useUpdateNailCost } from "@/hooks/useSettings";
 
 const profileDataSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
+  name: z.string().trim().min(3, "Name must be at least 3 characters"),
+  email: z.string().trim().email("Invalid email address"),
 });
 
 const passwordDataSchema = z.object({
@@ -57,7 +57,7 @@ export default function Settings() {
 
   useEffect(() => {
     if (user) {
-      setProfileData({ name: user.name, email: user.email });
+      setProfileData({ name: user.name || "", email: user.email || "" });
     }
   }, [user]);
 
@@ -70,6 +70,10 @@ export default function Settings() {
   const nailCostUnchanged =
     nailCost !== "" && Number(nailCost) === Number(serverCost);
 
+  const profileUnchanged =
+    profileData.name.trim() === (user?.name ?? "") &&
+    profileData.email.trim() === (user?.email ?? "");
+
   function handleSaveProfile(e) {
     e.preventDefault();
 
@@ -80,11 +84,10 @@ export default function Settings() {
       return;
     }
 
+    // only the fields this form edits; the server ignores everything else
     updateProfile({
-      id: user.id,
-      ...user,
-      name: profileData.name,
-      email: profileData.email,
+      name: validationResult.data.name,
+      email: validationResult.data.email,
     });
   }
 
@@ -98,16 +101,11 @@ export default function Settings() {
       return;
     }
 
-    if (passwordData.current !== user.password) {
-      toast.error("Current password is incorrect");
-      return;
-    }
-
+    // the server verifies the current password; the browser never sees a hash
     updatePassword(
       {
-        id: user.id,
-        ...user,
-        password: passwordData.new,
+        currentPassword: passwordData.current,
+        newPassword: passwordData.new,
       },
       {
         onSuccess: () => {
@@ -230,7 +228,7 @@ export default function Settings() {
             </div>
             <Button
               type="submit"
-              disabled={isSavingProfile}
+              disabled={isSavingProfile || profileUnchanged}
               className="w-fit bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
             >
               {isSavingProfile ? "Saving..." : t("settings.saveChanges")}
@@ -254,6 +252,7 @@ export default function Settings() {
                 <Input
                   id="current-password"
                   type={viewCurrentPass ? "text" : "password"}
+                  autoComplete="current-password"
                   value={passwordData.current}
                   onChange={(e) =>
                     setPasswordData({
@@ -278,6 +277,7 @@ export default function Settings() {
                 <Input
                   id="new-password"
                   type={viewNewPass ? "text" : "password"}
+                  autoComplete="new-password"
                   value={passwordData.new}
                   onChange={(e) =>
                     setPasswordData({ ...passwordData, new: e.target.value })
